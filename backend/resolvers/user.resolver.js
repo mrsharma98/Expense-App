@@ -6,7 +6,7 @@ import User from '../models/user.model.js'
 const userResolver = {
 
     Mutation: {
-        sugnUp: async(_, {input}, context) => {
+        signUp: async(_, {input}, context) => {
             try {
 
                 const {username, name, password, gender} = input
@@ -48,8 +48,12 @@ const userResolver = {
         login: async(_, {input}, context) => {
             try {
                 const {username, password} = input
+                if (!username || !password) {
+                    throw new Error("All fields are required")
+                }
 
-                const { user } = await context.authenticate("graph-local", {username, password})
+                const { user } = await context.authenticate("graphql-local", {username, password})
+
                 await context.login(user)
                 return user
 
@@ -59,14 +63,14 @@ const userResolver = {
             }
         },
 
-        logout: async (_, _, context) => {
+        logout: async (_, __, context) => {
             try{
                 await context.logout()
-                req.session.destroy((err) => {
+                context.req.session.destroy((err) => {
                     if (err) throw err;
                 })
 
-                res.clearCookie("connect.sid")
+                context.res.clearCookie("connect.sid")
 
                 return {message: "Logged out successfully"}
                 
@@ -78,11 +82,11 @@ const userResolver = {
     },
 
     Query : {
-        users: (_, _, {req, res}) => {
+        users: (_, __, {req, res}) => {
             return users
         },
 
-        authUser: async(_, _, context) => {
+        authUser: async(_, __, context) => {
             try {
                 const user = await context.getUser()
                 return user;
