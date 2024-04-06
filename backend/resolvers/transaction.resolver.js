@@ -11,6 +11,7 @@ const transactionResolver = {
                 const userId = await context.getUser()._id
 
                 const transactions = await Transaction.find({ userId })
+                console.log("transctionssss: ", transactions);
 
                 return transactions
                 
@@ -32,6 +33,25 @@ const transactionResolver = {
         },
 
         // TODO => ADD categoryStatistics query
+        categoryStatistics: async (_, __, context) => {
+            if (!context.getUser()) throw new Error("Unauthorized")
+
+            const userId = context.getUser()._id;
+            console.log('user: ', userId);
+            const transactions =await Transaction.find({ userId })
+            console.log("Transactions user: ", transactions);
+
+            const categoryMap = {}
+            console.log("Started Category: ", categoryMap);
+            transactions.forEach((transaction) => {
+                if (!categoryMap[transaction.category]) {
+                    categoryMap[transaction.category] = 0
+                }
+                categoryMap[transaction.category] += transaction.amount
+            })
+            console.log("CategpryMapp: ", categoryMap);
+            return Object.entries(categoryMap).map(([category, amount]) => ({ category,totalAmount: amount }))
+        }
     },
 
     Mutation: {
